@@ -3,30 +3,38 @@ Dumps decrypted iPhone Applications to a file - better solution than those GDB s
 
 
 Compile:
-
 First adjust the Makefile if you have a different iOS SDK installed.
-
 And then just: make
 
 
+Signing:
+```shell
+codesign -s - --entitlements entitlements.plist -f dumpdecrypted.dylib
+```
+
+Install:
+```shell
+ssh root@{ipaddress} "mkdir /usr/local/lib"
+scp dumpdecrypted.dylib root@{ipaddress}:/usr/local/lib/
+scp dumpdecrypted root@{ipaddress}:/usr/local/bin/
+```
+
 Usage:
+iPod:~ root# dumpdecrypted Scan.app Scan > Scan.decrypted
 
-iPod:~ root# DYLD_INSERT_LIBRARIES=dumpdecrypted.dylib /var/mobile/Applications/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/Scan.app/Scan
 mach-o decryption dumper
-
 DISCLAIMER: This tool is only meant for security research purposes, not for application crackers.
 
-[+] Found encrypted data at address 00002000 of length 1826816 bytes - type 1.
+[+] detected 64bit ARM binary in memory.
+[+] offset to cryptid found: @0x100064b18(from 0x100064000) = b18
+[+] Found encrypted data at address 00004000 of length 49152 bytes - type 1.
 [+] Opening /private/var/mobile/Applications/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/Scan.app/Scan for reading.
 [+] Reading header
 [+] Detecting header type
-[+] Executable is a FAT image - searching for right architecture
-[+] Correct arch is at offset 2408224 in the file
-[+] Opening Scan.decrypted for writing.
-[-] Failed opening. Most probably a sandbox issue. Trying something different.
-[+] Opening /private/var/mobile/Applications/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/tmp/Scan.decrypted for writing.
+[+] Executable is a plain MACH-O image
 [+] Copying the not encrypted start of the file
 [+] Dumping the decrypted data into the file
 [+] Copying the not encrypted remainder of the file
+[+] Setting the LC_ENCRYPTION_INFO->cryptid to 0 at offset b18
 [+] Closing original file
 [+] Closing dump file

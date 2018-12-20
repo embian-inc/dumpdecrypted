@@ -1,0 +1,41 @@
+#!/bin/bash
+readonly PROGNAME=`basename "$0"`
+readonly PROGDIR=`dirname "$0"`
+
+readonly APP_NAME="$1"
+readonly EXECUTABLE_PATH="$2"
+
+error() {
+	echo "$1" >&2
+}
+
+usage() {
+    error "USAGE: ${PROGNAME} app_name executable_path"
+}
+
+if [ ! -n "${APP_NAME}" ]; then
+    usage
+    exit 1
+fi
+
+if [ ! -n "${EXECUTABLE_PATH}" ]; then
+    usage
+    exit 1
+fi
+
+
+APP_PATH=`find /var/containers/Bundle/Application/ -maxdepth 2 -type d -name "${APP_NAME}"`
+if [ ! -d "${APP_PATH}" ]; then
+	error "not found the app ${APP_NAME} in /var/containers/Bundle/Application"
+	exit 1
+fi
+
+EXECUTABLE="${APP_PATH}"/"${EXECUTABLE_PATH}"
+
+if [ ! -f "${EXECUTABLE}" ]; then
+	error "not found executable ${EXECUTABLE}"
+	exit 1
+fi
+
+
+DYLD_INSERT_LIBRARIES=/usr/local/lib/dumpdecrypted.dylib "${EXECUTABLE}"
