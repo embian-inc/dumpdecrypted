@@ -1,7 +1,4 @@
 #!/bin/bash
-readonly PROGNAME=`basename "$0"`
-readonly PROGDIR=`dirname "$0"`
-
 readonly APP_NAME="$1"
 readonly EXECUTABLE_PATH="$2"
 
@@ -10,7 +7,7 @@ error() {
 }
 
 usage() {
-    error "USAGE: ${PROGNAME} app_name executable_path"
+    error "USAGE: dumpdecrypted app_name executable_path"
 }
 
 if [ ! -n "${APP_NAME}" ]; then
