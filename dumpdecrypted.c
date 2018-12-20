@@ -55,6 +55,7 @@ void dumptofile(int argc, const char **argv, const char **envp, const char **app
 	char rpath[4096]; /* should be big enough for PATH_MAX */
 	unsigned int fileoffs = 0, off_cryptid = 0, restsize;
 	int i,fd,outfd,r,n,toread;
+	unsigned int stdoffset = 0;
 	char *tmp;
 	
 	fprintf(stderr, "mach-o decryption dumper\n");
@@ -134,6 +135,10 @@ void dumptofile(int argc, const char **argv, const char **envp, const char **app
 			restsize = lseek(fd, 0, SEEK_END) - n - eic->cryptsize;			
 			lseek(fd, 0, SEEK_SET);
 			
+			if (off_cryptid) {
+				off_cryptid+=fileoffs;
+			}
+			
 			fprintf(stderr, "[+] Copying the not encrypted start of the file\n");
 			/* first copy all the data before the encrypted data */
 			while (n > 0) {
@@ -145,8 +150,17 @@ void dumptofile(int argc, const char **argv, const char **envp, const char **app
 				}
 				n -= r;
 				
-				// r = write(outfd, buffer, toread);
-				r = write(STDOUT_FILENO, buffer, toread);
+				if (off_cryptid) {
+					stdoffset += toread;
+					if (stdoffset >= off_cryptid) {
+						int buf_offset = 1024-(stdoffset-off_cryptid);
+						fprintf(stderr, "[+] Setting the LC_ENCRYPTION_INFO->cryptid to 0 at offset %x\n", off_cryptid);
+						memset(buffer+(buf_offset), 0, 4);
+						off_cryptid = 0;
+					}
+				}
+								
+				r = write(STDOUT_FILENO, buffer, toread);				
 				if (r != toread) {
 					fprintf(stderr, "[-] Error writing file\n");
 					_exit(1);
@@ -175,20 +189,10 @@ void dumptofile(int argc, const char **argv, const char **envp, const char **app
 				}
 				n -= r;
 				
-				// r = write(outfd, buffer, toread);
-				r = write(STDOUT_FILENO, buffer, toread);				
+				r = write(STDOUT_FILENO, buffer, toread);	
 				if (r != toread) {
 					fprintf(stderr, "[-] Error writing file\n");
 					_exit(1);
-				}
-			}
-
-			if (off_cryptid) {
-				uint32_t zero=0;
-				off_cryptid+=fileoffs;
-				fprintf(stderr, "[+] Setting the LC_ENCRYPTION_INFO->cryptid to 0 at offset %x\n", off_cryptid);
-				if (lseek(STDOUT_FILENO, off_cryptid, SEEK_SET) != off_cryptid || write(STDOUT_FILENO, &zero, 4) != 4) {					
-					fprintf(stderr, "[-] Error writing cryptid value\n");
 				}
 			}
 
