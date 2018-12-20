@@ -8,16 +8,12 @@ And then just: make
 
 
 Signing:
-```shell
 codesign -s - --entitlements entitlements.plist -f dumpdecrypted.dylib
-```
 
 Install:
-```shell
 ssh root@{ipaddress} "mkdir /usr/local/lib"
 scp dumpdecrypted.dylib root@{ipaddress}:/usr/local/lib/
 scp dumpdecrypted root@{ipaddress}:/usr/local/bin/
-```
 
 Usage:
 iPod:~ root# dumpdecrypted Scan.app Scan > Scan.decrypted
